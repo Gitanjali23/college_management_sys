@@ -1,61 +1,63 @@
-import { NextResponse } from 'next/server';
-import connectDB from '@/lib/db';
-import User from '@/lib/models/User';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'hardcoded_jwt_secret_for_development';
-
-const generateToken = (id: string, role: string) => {
-  return jwt.sign({ id, role }, JWT_SECRET, {
-    expiresIn: '30d',
-  });
-};
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "@/models/User";
+import connectDB from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
     await connectDB();
-    const { email, password } = await req.json();
+
+    const body = await req.json();
+    const { email, password } = body;
 
     if (!email || !password) {
       return NextResponse.json(
-        { success: false, message: 'Please provide an email and password' },
+        { message: "Please provide all required fields" },
         { status: 400 }
       );
     }
 
-    const user = await User.findOne({ email });
+    // Checking if user exists in database and selected password for comparison
+    const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
       return NextResponse.json(
-        { success: false, message: 'Invalid credentials' },
+        { message: "Invalid email or password" },
         { status: 401 }
       );
     }
 
-    const isMatch = await user.matchPassword(password);
-
-    if (isMatch) {
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password as string);
+    if (!isMatch) {
       return NextResponse.json(
-        {
-          success: true,
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          token: generateToken(user._id.toString(), user.role),
-        },
-        { status: 200 }
-      );
-    } else {
-      return NextResponse.json(
-        { success: false, message: 'Invalid credentials' },
+        { message: "Invalid email or password" },
         { status: 401 }
       );
     }
-  } catch (error: any) {
-    console.error('Login Error:', error);
+
+    // Return token and role
+    const jwtSecret = process.env.JWT_SECRET || "fallback_secret_key";
+    const token = jwt.sign({ id: user._id, role: user.role }, jwtSecret, {
+      expiresIn: "30d",
+    });
+
     return NextResponse.json(
-      { success: false, message: error.message || 'Server Error' },
+      {
+        message: "Login successful",
+        success: true,
+        token,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error("Login Error:", error);
+    return NextResponse.json(
+      { message: "Internal server error", error: error.message },
       { status: 500 }
     );
   }

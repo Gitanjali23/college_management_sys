@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
-import User from '@/lib/models/User';
-import { verifyAuth } from '@/lib/auth';
+import User from '@/models/User';
+import { verifyAuth } from '../../../../lib/auth';
 
 export async function GET(req: Request) {
   try {
     const authResult = await verifyAuth(req);
 
-    if (!authResult.success || !authResult.decoded) {
+    if (!authResult.success || !('decoded' in authResult) || !authResult.decoded) {
       return NextResponse.json(
-        { success: false, message: authResult.error },
+        { success: false, message: 'error' in authResult ? authResult.error : 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -18,7 +18,7 @@ export async function GET(req: Request) {
     
     // We get id from the verified JWT payload
     const userId = authResult.decoded.id;
-    const user = await User.findById(userId).select('-passwordHash');
+    const user = await User.findById(userId).select('-password');
 
     if (!user) {
       return NextResponse.json(

@@ -14,7 +14,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flex items-center justify-between px-8 py-4 bg-white border-b border-gray-200 dark:bg-black dark:border-gray-800">
+    <nav className="sticky top-0 z-50 flex items-center justify-between px-8 py-4 bg-white/80 backdrop-blur-md border-b border-zinc-200 dark:bg-black/80 dark:border-zinc-800">
       <div className="flex items-center gap-8">
         <div className="text-2xl font-black tracking-tighter">CMS</div>
         <div className="flex gap-4 md:gap-6 font-medium text-xs md:text-sm text-gray-600 dark:text-gray-400 overflow-x-auto pb-1 md:pb-0 whitespace-nowrap">

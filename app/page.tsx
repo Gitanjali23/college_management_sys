@@ -46,7 +46,7 @@ export default function Home() {
                   Sign In to Portal
                 </Button>
               </Link>
-              <Link href="/register" className="w-full sm:w-auto">
+              <Link href="/signup" className="w-full sm:w-auto">
                 <Button variant="secondary" className="h-14 px-10 text-lg rounded-full w-full bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800">
                   Request Access
                 </Button>

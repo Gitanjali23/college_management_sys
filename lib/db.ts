@@ -27,7 +27,7 @@ async function connectDB() {
     console.log("✅ MongoDB Atlas Connected Successfully!");
   } catch (error) {
     console.error("❌ MongoDB Connection Failed:", error);
-    process.exit(1);
+    // process.exit is not supported in edge runtime
   }
 }
 

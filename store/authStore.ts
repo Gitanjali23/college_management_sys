@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type Role = "admin" | "member";
+type Role = "admin" | "student" | "teacher";
 
 interface AuthState {
   user: null | string;
