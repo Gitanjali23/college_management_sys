@@ -25,7 +25,7 @@ const RegisterPage = () => {
   const login = useAuthStore((state) => state.login);
   const router = useRouter();
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
 
@@ -42,10 +42,26 @@ const RegisterPage = () => {
       return;
     }
 
-    // FAKE REGISTRATION: In a real app we'd call the API layer to store this in MongoDB.
-    // For now, we instantly log them in. 
-    login(email, role);
-    router.push("/dashboard");
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password, role }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        login(data.email, data.role, data.token);
+        router.push("/dashboard");
+      } else {
+        setErrors({ general: data.message || "Registration failed" });
+      }
+    } catch (error) {
+      setErrors({ general: "Failed to connect to the server." });
+    }
   };
 
   return (

@@ -21,7 +21,7 @@ const LoginPage = () => {
   const login = useAuthStore((state) => state.login);
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
 
@@ -37,15 +37,25 @@ const LoginPage = () => {
       return;
     }
 
-    // Role-based Login Logic
-    const role = email === "admin@test.com" ? "admin" : "member";
-    
-    // Fake login check (password is simplified for testing)
-    if (password === "123456") {
-      login(email, role);
-      router.push("/dashboard");
-    } else {
-      setErrors({ general: "Invalid password. Try 123456" });
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        login(data.email, data.role, data.token);
+        router.push("/dashboard");
+      } else {
+        setErrors({ general: data.message || "Invalid email or password" });
+      }
+    } catch (error) {
+      setErrors({ general: "Failed to connect to the server." });
     }
   };
 
@@ -80,6 +90,12 @@ const LoginPage = () => {
             placeholder="••••••••"
             error={errors.password}
           />
+
+          <div className="flex justify-end">
+            <Link href="/reset-password" className="text-xs font-bold text-blue-500 hover:text-blue-600 transition-colors">
+              Forgot password?
+            </Link>
+          </div>
 
           <Button type="submit" className="w-full h-11">
             Log in
